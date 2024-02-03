@@ -5,7 +5,6 @@ from typing import Tuple
 from numpy import random
 
 
-# Generate a random 3D position vector (x, y, z) for a node.
 def generate_random_pos() -> tuple[int, int, int]:
     """Generate a random 3D position vector (x, y, z) for a node."""
     x = rand.randint(1, 1000)
@@ -14,13 +13,13 @@ def generate_random_pos() -> tuple[int, int, int]:
     return x, y, z
 
 
-# Generate a random current value within a given range for a node.
 def get_random_current() -> int:
+    """Generate a random current value within a given range for a node."""
     return rand.randint(1, 10)
 
 
-# Create an array of N nodes, where N is a random number.
 def generate_nodes(n: int) -> list[Tuple[Tuple[int, int, int], int]]:
+    """Create an array of N nodes, where N is a random number."""
     nodes = []
     for _ in range(n):
         # Generating three random coordinates
@@ -36,19 +35,19 @@ def generate_nodes(n: int) -> list[Tuple[Tuple[int, int, int], int]]:
     return nodes
 
 
-# Get a random node from the array of nodes.
 def get_random_node(nodes: list) -> [tuple[int, int, int], int]:
+    """Get a random node from the array of nodes."""
     n = rand.randint(0, len(nodes) - 1)
     return nodes[n]
 
 
-# Change the position of a node by adding a direction vector, e.g., [1, -1, 0] means moving up and left in 3 dimensions.
 def change_node_position(x: int, y: int, z: int) -> Tuple[int, int, int]:
+    """Change the position of a node by adding a direction vector, e.g., [1, -1, 0] means moving up and left in 3 dimensions."""
     return x, y, z
 
 
-# Check whether the new energy state is lower than the previous state.
 def check_energy(energy: float, new_energy: float) -> bool:
+    """Check whether the new energy state is lower than the previous state."""
     if energy < new_energy:
         return True
     else:
@@ -87,18 +86,18 @@ def calculate_energy(nodes: list, ref_node: tuple) -> float:
     return energy
 
 
-# Function that returns the probability of accepting a new state.
 def probability_fun():
+    """Function that returns the probability of accepting a new state."""
     return
 
 
-# Make a decision on whether to accept a new state based on a probability function.
 def make_decision():
+    """Make a decision on whether to accept a new state based on a probability function."""
     return
 
 
-# Calculate energy of whole system
 def system_energy():
+    """Calculate energy of whole system"""
     return
 
 
