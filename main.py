@@ -2,7 +2,7 @@ import random as rand
 from math import sqrt
 from typing import Tuple
 
-from numpy import random
+import numpy as np
 
 
 def generate_random_pos() -> tuple[int, int, int]:
@@ -23,12 +23,12 @@ def generate_nodes(n: int) -> list[Tuple[Tuple[int, int, int], int]]:
     nodes = []
     for _ in range(n):
         # Generating three random coordinates
-        x = random.randint(-100, 100)
-        y = random.randint(-100, 100)
-        z = random.randint(-100, 100)
+        x = np.random.randint(-100, 100)
+        y = np.random.randint(-100, 100)
+        z = np.random.randint(-100, 100)
 
         # Generating a random value for the node
-        value = random.randint(1, 100) * (10 ** (-9))
+        value = np.random.randint(1, 100) * (10 ** (-9))
 
         # Adding a tuple (coordinates, value) to the list of nodes
         nodes.append(((x, y, z), value))
@@ -42,16 +42,21 @@ def get_random_node(nodes: list) -> [tuple[int, int, int], int]:
 
 
 def change_node_position(x: int, y: int, z: int) -> Tuple[int, int, int]:
-    """Change the position of a node by adding a direction vector, e.g., [1, -1, 0] means moving up and left in 3 dimensions."""
+    """Change the position of a node by adding a direction vector, e.g., [1, -1, 0] means moving up
+    and left in 3 dimensions."""
+    x += np.random.uniform(-1, 1)
+    y += np.random.uniform(-1, 1)
+    z += np.random.uniform(-1, 1)
+
     return x, y, z
 
 
-def check_energy(energy: float, new_energy: float) -> bool:
+def check_energy(energy: float, new_energy: float, temperature: float) -> bool:
     """Check whether the new energy state is lower than the previous state."""
     if energy < new_energy:
         return True
     else:
-        probability_fun()
+        return probability_fun(energy, new_energy, temperature)
 
 
 def calculate_distance(node_values: tuple, ref_node_values: tuple) -> float:
@@ -64,11 +69,11 @@ def calculate_distance(node_values: tuple, ref_node_values: tuple) -> float:
 
 
 def calculate_energy_between_nodes(node_values: tuple, node_charge: float, ref_node_values: tuple,
-                                   ref_node_charge: float, CONSTANT_K: float) -> float:
+                                   ref_node_charge: float, k: float) -> float:
     """Calculates the energy between two nodes."""
     try:
         distance = calculate_distance(node_values, ref_node_values)
-        return CONSTANT_K * node_charge * ref_node_charge / distance
+        return k * node_charge * ref_node_charge / distance
     except ZeroDivisionError:
         return 0.0
 
@@ -81,14 +86,21 @@ def calculate_energy(nodes: list, ref_node: tuple) -> float:
 
     for node in nodes:
         node_values, node_charge = node
-        energy += calculate_energy_between_nodes(node_values, node_charge, ref_node_values, ref_node_charge, CONSTANT_K)
+        energy += calculate_energy_between_nodes(node_values, node_charge, ref_node_values,
+                                                 ref_node_charge, CONSTANT_K)
 
     return energy
 
 
-def probability_fun():
+def probability_fun(current_energy: float, new_energy: float, temperature: float) -> bool:
     """Function that returns the probability of accepting a new state."""
-    return
+    decision_factor = np.random.rand()
+    probability_value = np.exp((current_energy - new_energy) / temperature)
+
+    if decision_factor < probability_value:
+        return True
+    else:
+        return False
 
 
 def make_decision():
@@ -107,7 +119,7 @@ def main():
     # initial temperature
     T: int = 100
     # temperature drop rate per iteration
-    drop_rate: int = 1
+    drop_rate: int = 0.01
     nodes = generate_nodes(10)
     for i in range(1, I_MAX):
         if T <= 0:
@@ -118,7 +130,7 @@ def main():
         new_node = (new_pos, node[1])
         new_energy = calculate_energy(nodes, new_node)
 
-        check_energy(init_energy, new_energy)
+        check_energy(init_energy, new_energy, T)
         make_decision()
         T -= drop_rate
 
