@@ -80,7 +80,7 @@ def main():
 
         check_energy(init_energy, new_energy)
         make_decision()
-        T -= i * drop_rate
+        T -= drop_rate
 
 
 if __name__ == "__main__":
