@@ -1,9 +1,13 @@
 import random as rand
+from math import sqrt
 from typing import Tuple
+
+from numpy import random
 
 
 # Generate a random 3D position vector (x, y, z) for a node.
 def generate_random_pos() -> tuple[int, int, int]:
+    """Generate a random 3D position vector (x, y, z) for a node."""
     x = rand.randint(1, 1000)
     y = rand.randint(1, 1000)
     z = rand.randint(1, 1000)
@@ -16,8 +20,19 @@ def get_random_current() -> int:
 
 
 # Create an array of N nodes, where N is a random number.
-def generate_nodes(N: int) -> list[Tuple[Tuple[int, int, int], int]]:
+def generate_nodes(n: int) -> list[Tuple[Tuple[int, int, int], int]]:
     nodes = []
+    for _ in range(n):
+        # Generating three random coordinates
+        x = random.randint(-100, 100)
+        y = random.randint(-100, 100)
+        z = random.randint(-100, 100)
+
+        # Generating a random value for the node
+        value = random.randint(1, 100) * (10 ** (-9))
+
+        # Adding a tuple (coordinates, value) to the list of nodes
+        nodes.append(((x, y, z), value))
     return nodes
 
 
@@ -40,9 +55,35 @@ def check_energy(energy: float, new_energy: float) -> bool:
         probability_fun()
 
 
-# Calculate the energy of a given state, defined by an array of nodes.
+def calculate_distance(node_values: tuple, ref_node_values: tuple) -> float:
+    """Calculates the distance between two nodes."""
+    distance_x = (node_values[0] - ref_node_values[0]) ** 2
+    distance_y = (node_values[1] - ref_node_values[1]) ** 2
+    distance_z = (node_values[2] - ref_node_values[2]) ** 2
+
+    return sqrt(distance_x + distance_y + distance_z)
+
+
+def calculate_energy_between_nodes(node_values: tuple, node_charge: float, ref_node_values: tuple,
+                                   ref_node_charge: float, CONSTANT_K: float) -> float:
+    """Calculates the energy between two nodes."""
+    try:
+        distance = calculate_distance(node_values, ref_node_values)
+        return CONSTANT_K * node_charge * ref_node_charge / distance
+    except ZeroDivisionError:
+        return 0.0
+
+
 def calculate_energy(nodes: list, ref_node: tuple) -> float:
+    """Calculates the total energy between all nodes and the reference node."""
     energy = 0.0
+    CONSTANT_K = 8.99 * (10 ** 9)
+    ref_node_values, ref_node_charge = ref_node
+
+    for node in nodes:
+        node_values, node_charge = node
+        energy += calculate_energy_between_nodes(node_values, node_charge, ref_node_values, ref_node_charge, CONSTANT_K)
+
     return energy
 
 
@@ -63,13 +104,13 @@ def system_energy():
 
 def main():
     # maximum iterations
-    i_max = 100
+    I_MAX: int = 100
     # initial temperature
-    T = 100
+    T: int = 100
     # temperature drop rate per iteration
-    drop_rate = 1
+    drop_rate: int = 1
     nodes = generate_nodes(10)
-    for i in range(1, i_max):
+    for i in range(1, I_MAX):
         if T <= 0:
             break
         node = get_random_node(nodes)
