@@ -119,7 +119,7 @@ def main():
     # initial temperature
     T: int = 100
     # temperature drop rate per iteration
-    drop_rate: int = 0.01
+    drop_rate: float = 0.01
     nodes = generate_nodes(10)
     for i in range(1, I_MAX):
         if T <= 0:
