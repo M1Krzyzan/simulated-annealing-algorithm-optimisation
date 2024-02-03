@@ -4,6 +4,17 @@ from typing import Tuple
 
 import numpy as np
 
+CONSTANT_K = 8.99 * (10 ** 9)
+
+# maximum iterations
+I_MAX: int = 100
+
+# temperature drop rate per iteration
+DROP_RATE: float = 0.01
+
+# initial temperature
+T: int = 100
+
 
 def generate_random_pos() -> tuple[int, int, int]:
     """Generate a random 3D position vector (x, y, z) for a node."""
@@ -35,10 +46,10 @@ def generate_nodes(n: int) -> list[Tuple[Tuple[int, int, int], int]]:
     return nodes
 
 
-def get_random_node(nodes: list) -> [tuple[int, int, int], int]:
+def get_random_node(nodes: list) -> [[tuple[int, int, int], int], int]:
     """Get a random node from the array of nodes."""
     n = rand.randint(0, len(nodes) - 1)
-    return nodes[n]
+    return nodes[n], n
 
 
 def change_node_position(x: int, y: int, z: int) -> Tuple[int, int, int]:
@@ -52,7 +63,7 @@ def change_node_position(x: int, y: int, z: int) -> Tuple[int, int, int]:
 
 
 def check_energy(energy: float, new_energy: float, temperature: float) -> bool:
-    """Check whether the new energy state is lower than the previous state."""
+    """Check whether we accept new energy state."""
     if energy < new_energy:
         return True
     else:
@@ -81,7 +92,6 @@ def calculate_energy_between_nodes(node_values: tuple, node_charge: float, ref_n
 def calculate_energy(nodes: list, ref_node: tuple) -> float:
     """Calculates the total energy between all nodes and the reference node."""
     energy = 0.0
-    CONSTANT_K = 8.99 * (10 ** 9)
     ref_node_values, ref_node_charge = ref_node
 
     for node in nodes:
@@ -103,36 +113,29 @@ def probability_fun(current_energy: float, new_energy: float, temperature: float
         return False
 
 
-def make_decision():
-    """Make a decision on whether to accept a new state based on a probability function."""
-    return
-
-
 def system_energy():
     """Calculate energy of whole system"""
     return
 
 
 def main():
-    # maximum iterations
-    I_MAX: int = 100
     # initial temperature
-    T: int = 100
-    # temperature drop rate per iteration
-    drop_rate: float = 0.01
+    temp: int = T
+
     nodes = generate_nodes(10)
     for i in range(1, I_MAX):
-        if T <= 0:
+        if temp <= 0:
             break
-        node = get_random_node(nodes)
+        node, n = get_random_node(nodes)
         init_energy = calculate_energy(nodes, node)
         new_pos = change_node_position(node[0][0], node[0][1], node[0][2])
         new_node = (new_pos, node[1])
         new_energy = calculate_energy(nodes, new_node)
 
-        check_energy(init_energy, new_energy, T)
-        make_decision()
-        T -= drop_rate
+        is_better = check_energy(init_energy, new_energy, temp)
+        if is_better:
+            nodes[n] = new_node
+        temp -= DROP_RATE
 
 
 if __name__ == "__main__":
