@@ -2,6 +2,7 @@ import random as rand
 from math import sqrt
 from typing import Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 CONSTANT_K = 8.99 * (10 ** 9)
@@ -14,6 +15,9 @@ DROP_RATE: float = 0.01
 
 # initial temperature
 T: int = 100
+
+# List to store energy values for each iteration
+energy_values = []
 
 
 def generate_random_pos() -> tuple[int, int, int]:
@@ -39,7 +43,7 @@ def generate_nodes(n: int) -> list[Tuple[Tuple[int, int, int], int]]:
         z = np.random.randint(-100, 100)
 
         # Generating a random value for the node
-        value = np.random.randint(1, 100) * (10 ** (-9))
+        value = np.random.randint(-100, 100) * (10 ** (-9))
 
         # Adding a tuple (coordinates, value) to the list of nodes
         nodes.append(((x, y, z), value))
@@ -80,11 +84,11 @@ def calculate_distance(node_values: tuple, ref_node_values: tuple) -> float:
 
 
 def calculate_energy_between_nodes(node_values: tuple, node_charge: float, ref_node_values: tuple,
-                                   ref_node_charge: float, k: float) -> float:
+                                   ref_node_charge: float) -> float:
     """Calculates the energy between two nodes."""
     try:
         distance = calculate_distance(node_values, ref_node_values)
-        return k * node_charge * ref_node_charge / distance
+        return CONSTANT_K * node_charge * ref_node_charge / distance
     except ZeroDivisionError:
         return 0.0
 
@@ -97,7 +101,7 @@ def calculate_energy(nodes: list, ref_node: tuple) -> float:
     for node in nodes:
         node_values, node_charge = node
         energy += calculate_energy_between_nodes(node_values, node_charge, ref_node_values,
-                                                 ref_node_charge, CONSTANT_K)
+                                                 ref_node_charge)
 
     return energy
 
@@ -122,20 +126,49 @@ def main():
     # initial temperature
     temp: int = T
 
+    # nodes = generate_nodes(10)
+    # for i in range(1, I_MAX):
+    #     if temp <= 0:
+    #         break
+    #     node, n = get_random_node(nodes)
+    #     init_energy = calculate_energy(nodes, node)
+    #     new_pos = change_node_position(node[0][0], node[0][1], node[0][2])
+    #     new_node = (new_pos, node[1])
+    #     new_energy = calculate_energy(nodes, new_node)
+    #
+    #     is_better = check_energy(init_energy, new_energy, temp)
+    #     if is_better:
+    #         nodes[n] = new_node
+    #     temp -= DROP_RATE
     nodes = generate_nodes(10)
-    for i in range(1, I_MAX):
-        if temp <= 0:
-            break
-        node, n = get_random_node(nodes)
-        init_energy = calculate_energy(nodes, node)
-        new_pos = change_node_position(node[0][0], node[0][1], node[0][2])
-        new_node = (new_pos, node[1])
-        new_energy = calculate_energy(nodes, new_node)
+    while temp > 0:
+        for i in range(1, I_MAX):
+            node, n = get_random_node(nodes)
+            init_energy = calculate_energy(nodes, node)
+            new_pos = change_node_position(node[0][0], node[0][1], node[0][2])
+            new_node = (new_pos, node[1])
+            new_energy = calculate_energy(nodes, new_node)
 
-        is_better = check_energy(init_energy, new_energy, temp)
-        if is_better:
-            nodes[n] = new_node
+            is_better = check_energy(init_energy, new_energy, temp)
+            if is_better:
+                nodes[n] = new_node
+        try:
+            energy_values.append(nodes[n][1])
+        except UnboundLocalError:
+            pass
         temp -= DROP_RATE
+    print(energy_values[-1])
+    print(np.max(energy_values))
+    print(np.min(energy_values))
+    print(np.average(energy_values))
+    energy_values_reduced = energy_values[::20]
+    plt.plot(range(0, len(energy_values), 20), energy_values_reduced, marker='o', linestyle='-')
+    plt.xlabel('Iterations')
+    plt.ylabel('Energy')
+    plt.title('Energy change over iterations')
+    plt.grid(True)
+    plt.scatter(len(energy_values) - 1, energy_values[-1], color='red')
+    plt.show()
 
 
 if __name__ == "__main__":
