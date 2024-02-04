@@ -1,4 +1,4 @@
-# Live 3D Simulation of the annealing optimisation algorithm
+# Live 3D simulation of the annealing optimisation algorithm
 
 ## GIF DEMO 
 ## Running on your own machine
