@@ -36,12 +36,6 @@ def generate_random_pos() -> tuple[float, float, float]:
     z = r * np.cos(theta)
     return x, y, z
 
-
-def get_random_current() -> int:
-    """Generate a random current value within a given range for a node."""
-    return rand.randint(1, 10)
-
-
 def generate_nodes(n: int) -> list[Tuple[Tuple[float, float, float], int]]:
     """Create an array of N nodes, where N is a random number."""
     nodes = []
