@@ -10,10 +10,10 @@ from skspatial.objects import Sphere
 CONSTANT_K = 8.99 * (10 ** 9)
 
 # maximum iterations
-I_MAX: int = 20
+I_MAX: int = 40
 
 # temperature drop rate per iteration
-DROP_RATE: float = 0.1
+DROP_RATE: float = 0.5
 
 # initial temperature
 T: float = 60.0
@@ -22,7 +22,7 @@ T: float = 60.0
 R: int = 100
 
 # number of points
-N: int = 10
+N: int = 20
 
 
 def generate_random_pos() -> tuple[float, float, float]:
@@ -50,7 +50,7 @@ def generate_nodes(n: int) -> list[Tuple[Tuple[float, float, float], int]]:
         pos = generate_random_pos()
 
         # Generating a random value for the node
-        value = np.random.randint(1, 10) * (10 ** (-5))
+        value = np.random.randint(1, 10) * (10 ** (-4))
 
         # Adding a tuple (coordinates, value) to the list of nodes
         nodes.append((pos, value))
@@ -70,7 +70,7 @@ def change_node_position(x: float, y: float, z: float) -> Tuple[float, float, fl
     y_new = 0
     z_new = 0
     while True:
-        r = np.random.uniform(0, 5)
+        r = np.random.uniform(0.1, R / 10)
         theta = np.random.uniform(0, np.pi)
         phi = np.random.uniform(0, 2 * np.pi)
         x_new = x + r * np.sin(theta) * np.cos(phi)
@@ -86,8 +86,10 @@ def check_energy(energy: float, new_energy: float, temperature: float) -> bool:
     """Check whether we accept new energy state."""
     if abs(energy) > abs(new_energy):
         return True
-    else:
+    elif temperature < 0.95 * T:
         return probability_fun(energy, new_energy, temperature)
+    else:
+        return False
 
 
 def calculate_distance(node_values: tuple, ref_node_values: tuple) -> float:
@@ -129,7 +131,7 @@ def probability_fun(current_energy: float, new_energy: float, temperature: float
     decision_factor = np.random.rand()
     probability_value = np.exp((current_energy - new_energy) / temperature)
 
-    if decision_factor > probability_value:
+    if decision_factor < probability_value:
         return True
     else:
         return False
@@ -158,33 +160,22 @@ def main():
     # initial temperature
     temp: float = T
 
-    # nodes = generate_nodes(10)
-    # for i in range(1, I_MAX):
-    #     if temp <= 0:
-    #         break
-    #     node, n = get_random_node(nodes)
-    #     init_energy = calculate_energy(nodes, node)
-    #     new_pos = change_node_position(node[0][0], node[0][1], node[0][2])
-    #     new_node = (new_pos, node[1])
-    #     new_energy = calculate_energy(nodes, new_node)
-    #
-    #     is_better = check_energy(init_energy, new_energy, temp)
-    #     if is_better:
-    #         nodes[n] = new_node
-    #     temp -= DROP_RATE
-
     nodes = generate_nodes(N)
 
     # List to store energy values for each iteration
     energy_values = [system_energy(nodes)]
     points_pos = [(extract_points(nodes), temp)]
-    while temp > 0.09:
+
+    end_counter = 0
+    while temp > 1:
         for i in range(1, I_MAX):
             node, n = get_random_node(nodes)
-            init_energy = calculate_energy(nodes, node, n)
+            init_energy = energy_values[-1]
             new_pos = change_node_position(node[0][0], node[0][1], node[0][2])
             new_node = (new_pos, node[1])
-            new_energy = calculate_energy(nodes, new_node, n)
+            nodes_copy = nodes.copy()
+            nodes_copy[n] = new_node
+            new_energy = system_energy(nodes_copy)
 
             is_better = check_energy(init_energy, new_energy, temp)
             if is_better:
@@ -192,11 +183,19 @@ def main():
             total_energy = system_energy(nodes)
             energy_values.append(total_energy)
             points_pos.append((extract_points(nodes), temp))
+
+        delta = abs(np.average(energy_values[-I_MAX:]) - energy_values[-1])
+        if delta < 0.1:
+            end_counter += 1
+            if end_counter == 2:
+                break
+        else:
+            end_counter = 0
         temp -= DROP_RATE
 
-    time = [i for i in range(0, len(energy_values))]
+    time = range(0, len(energy_values))
 
-    fig = plt.figure(figsize=(10,7))
+    fig = plt.figure(figsize=(10, 7))
     ax = fig.add_subplot(2, 1, 2)
     sct2, = ax.plot(time, energy_values)
     plt.xlabel('Time')
@@ -204,7 +203,7 @@ def main():
     plt.grid(True)
 
     ax = fig.add_subplot(2, 1, 1, projection='3d')
-    sct, = ax.plot([], [], [], "o",)
+    sct, = ax.plot([], [], [], "o", )
     title = ax.set_title("")
 
     sphere = Sphere([0, 0, 0], radius=R)
@@ -213,14 +212,14 @@ def main():
     def update(ifrm):
         sct.set_data(points_pos[ifrm][0][0], points_pos[ifrm][0][1])
         sct.set_3d_properties(points_pos[ifrm][0][2])
-        sct2.set_data(time[:ifrm+1],energy_values[:ifrm+1])
-        title.set_text('T={:.1f}'.format(points_pos[ifrm][1]))
-        return sct, title,sct2
+        sct2.set_data(time[:ifrm + 1], energy_values[:ifrm + 1])
+        title.set_text('T={:.0f}'.format(points_pos[ifrm][1]))
+        return sct, title, sct2
 
-    ax.set_xlim(-100, 100)
-    ax.set_ylim(-100, 100)
-    ax.set_zlim(-100, 100)
-    ani = FuncAnimation(fig, func=update, frames=len(points_pos), interval=1)
+    ax.set_xlim(-R, R)
+    ax.set_ylim(-R, R)
+    ax.set_zlim(-R, R)
+    ani = FuncAnimation(fig, func=update, frames=len(points_pos), interval=1, repeat=False)
     plt.show()
 
 
