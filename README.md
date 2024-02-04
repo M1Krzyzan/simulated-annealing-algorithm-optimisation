@@ -1,6 +1,7 @@
 # Live 3D simulation of the annealing optimisation algorithm
 
 ## GIF DEMO 
+![](https://github.com/xTotalError/simulated-annealing-algorithm-optimisation/blob/main/sample_graph.gif)
 ## Running on your own machine
 
 After cloning repo,
