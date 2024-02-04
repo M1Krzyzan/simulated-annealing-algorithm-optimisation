@@ -2,6 +2,7 @@
 
 ## GIF DEMO 
 ![](https://github.com/xTotalError/simulated-annealing-algorithm-optimisation/blob/main/sample_graph.gif)
+![](https://github.com/xTotalError/simulated-annealing-algorithm-optimisation/blob/main/sample_graph.png)
 ## Running on your own machine
 
 After cloning repo,
